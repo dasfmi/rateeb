@@ -1,0 +1,36 @@
+{
+    "manifest_version": 3,
+    "name": "Rateeb",
+    "version": "1.0",
+    "description": "Rateeb extension to quickly add & view notes",
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "side_panel": {
+        "default_path": "sidepanel.html"
+    },
+    "permissions": [
+        "tabs",
+        "activeTab",
+        "sidePanel",
+        "notifications",
+        "contextMenus"
+    ],
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "assets/content.js"
+            ],
+            "match_origin_as_fallback": false,
+            "match_about_blank": false,
+            "run_at": "document_idle",
+            "world": "ISOLATED"
+        }
+    ],
+    "chrome_url_overrides": {
+        "newtab": "index.html"
+    }
+}

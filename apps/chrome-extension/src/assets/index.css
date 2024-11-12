@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .text-muted {
+    @apply text-gray-500;
+  }
+
+  .btn-primary {
+    @apply px-4 py-2 bg-black text-white rounded text-sm hover:bg-black/85;
+  }
+
+  .btn-muted {
+    @apply px-4 py-2 bg-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300;
+  }
+}
