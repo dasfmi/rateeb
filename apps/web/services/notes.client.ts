@@ -4,9 +4,11 @@ export const loadNotes = async ({
     query,
     type,
     noCache,
+    tags,
 }: {
     query?: string;
     type?: string;
+    tags?: string;
     noCache?: boolean;
 }) => {
     const searchParams = new URLSearchParams();
@@ -15,6 +17,9 @@ export const loadNotes = async ({
     }
     if (type) {
         searchParams.set("type", type);
+    }
+    if (tags) {
+        searchParams.set("tags", tags);
     }
 
     // try load to load notes from localStorage, if not found, fetch from the server

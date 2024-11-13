@@ -33,6 +33,7 @@ export default function Editor({ data, onChange, holder }: Props) {
       const editor = new EditorJS({
         holder,
         autofocus: true,
+        placeholder: 'New page',
         tools: {
           header: Header,
           list: {

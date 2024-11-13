@@ -14,7 +14,7 @@ export default function Tag({
 
   return (
     <div
-      className="px-2 py-1 bg-muted border text-[0.6rem] rounded-lg text-muted inline-flex items-center gap-1 w-min relative"
+      className="px-2 py-1 bg-muted border text-[0.6rem] rounded-lg text-muted inline-flex items-center gap-1 relative whitespace-nowrap"
       onMouseOver={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >

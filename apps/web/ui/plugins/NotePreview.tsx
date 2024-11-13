@@ -25,19 +25,6 @@ export class NotePreview {
           title: "",
           type: "note",
           tags: [],
-          text: undefined,
-          description: undefined,
-          image: undefined,
-          createdAt: undefined,
-          url: undefined,
-          hostname: undefined,
-          name: undefined,
-          email: undefined,
-          site: undefined,
-          github: undefined,
-          linkedin: undefined,
-          isPinned: undefined,
-          target: undefined,
         }}
         onAction={function (action: string): void {
           throw new Error("Function not implemented.");

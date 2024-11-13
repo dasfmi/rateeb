@@ -12,8 +12,8 @@ export default function TrashPage() {
     setIsLoading(true);
     const loadNotes = async () => {
       const resp = await fetch("/api/notes?isDeleted=true");
-      const data = await resp.json();
-      setNotes(data.notes);
+      const { data } = await resp.json();
+      setNotes(data);
       setIsLoading(false);
     };
 

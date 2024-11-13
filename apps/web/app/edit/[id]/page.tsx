@@ -1,34 +1,64 @@
 "use client";
 import { Note } from "@/entity";
 import { loadNotes } from "@/services/notes.client";
+import CanvasRoot from "@/ui/canvas/CanvasRoot";
 import NoteCard from "@/ui/NoteCard";
 import Spinner from "@/ui/Spinner";
 import { OutputData } from "@editorjs/editorjs";
 import dynamic from "next/dynamic";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 const TextEditor = dynamic(() => import("@/ui/TextEditor"), {
   ssr: false,
 });
 
-// import TextEditor from "@/ui/TextEditor";
+export default function EditBlock({ params }: { params: { id: string } }) {
+  const query = useSearchParams();
+  const [id, setID] = useState<string>();
+  const [isLoading, setIsLoading] = useState(true);
+  const type = query.get("type") || "note";
 
-export default function EditDocument({ params }: { params: { id: string } }) {
+  useEffect(() => {
+    if (params.id !== "new") {
+      fetch("/api/notes/" + params.id)
+        .then((resp) => resp.json())
+        .then((data) => {
+          console.log("data is", data.data.body);
+          setID(params.id);
+          // setData(data.data.body);
+          setIsLoading(false);
+        });
+    } else {
+      setIsLoading(false);
+    }
+  }, [params.id]);
+
+  switch (type) {
+    case "canvas":
+      return <CanvasRoot />;
+    default:
+      return <EditDocument params={params} />;
+  }
+}
+
+function EditDocument({ params }: { params: { id: string } }) {
+  const query = useSearchParams();
   const [id, setID] = useState<string>();
   const [data, setData] = useState<OutputData>({
     blocks: [
-      {
-        type: "header",
-        data: {
-          text: "New Document",
-          level: 1,
-        },
-      },
-      {
-        type: "paragraph",
-        data: {
-          text: "Start writing your document",
-        },
-      },
+      // {
+      //   type: "header",
+      //   data: {
+      //     text: "New Document",
+      //     level: 1,
+      //   },
+      // },
+      // {
+      //   type: "paragraph",
+      //   data: {
+      //     text: "Start writing your document",
+      //   },
+      // },
     ],
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -122,7 +152,9 @@ export default function EditDocument({ params }: { params: { id: string } }) {
 
   return (
     <div className="flex w-full h-full overflow-y-auto">
-      <TextEditor data={data} onChange={saveData} holder="editor_create" />
+      <div className="w-3/4">
+        <TextEditor data={data} onChange={saveData} holder="editor_create" />
+      </div>
       <aside className="flex flex-col gap-3 w-1/4 p-4 max-h-full overflow-y-auto">
         {notes.map((note) => (
           <NoteCard key={note._id} note={note} onAction={() => {}} />

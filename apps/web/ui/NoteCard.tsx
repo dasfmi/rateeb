@@ -10,6 +10,8 @@ import {
   Edit2Icon,
   PlusIcon,
   TagIcon,
+  PhoneIcon,
+  LinkedinIcon
 } from "lucide-react";
 import Link from "next/link";
 import { FormEvent, ReactNode, useRef, useState } from "react";
@@ -21,17 +23,20 @@ const NoteContainer = ({
   onAction,
   isPinned,
   tags,
+  createdAt,
 }: {
   children: ReactNode;
   id: string;
   onAction: (name: string, value?: unknown) => void;
   isPinned?: boolean;
   tags: string[];
+  createdAt: number;
 }) => {
   const [showControls, setShowControls] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [showTagInput, setShowTagInput] = useState(false);
   const tagInput = useRef<HTMLInputElement>(null);
+  const date = new Date(createdAt).toISOString().substring(0, 10);
 
   const onSubmitNewTag = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -39,7 +44,7 @@ const NoteContainer = ({
 
     onAction("addTag", text);
     e.currentTarget.newTag.value = "";
-    setShowTagInput(false)
+    setShowTagInput(false);
   };
 
   return (
@@ -64,12 +69,19 @@ const NoteContainer = ({
         </div>
       )}
       {children}
-      <section className="flex gap-2 flex-wrap items-center p-2 px-4 z-30 mt-4">
+      <section className="mt-4 px-4">
+        <p className="text-muted text-xs">{date}</p>
+      </section>
+      <section className="flex gap-2 flex-wrap items-center p-2 px-4 z-30 mt-1">
         <TagIcon size={12} className="text-muted" />
         {tags.map((tag, index) => (
-          <Tag key={index} tag={tag} onDelete={function (): void {
-            throw new Error("Function not implemented.");
-          } } />
+          <Tag
+            key={index}
+            tag={tag}
+            onDelete={function (): void {
+              throw new Error("Function not implemented.");
+            }}
+          />
         ))}
         <form onSubmit={onSubmitNewTag} className="flex items-center gap-2">
           <input
@@ -82,11 +94,13 @@ const NoteContainer = ({
             placeholder="new tag"
             ref={tagInput}
           />
-          <button onClick={() => {
-            setShowTagInput(true)
-            tagInput.current?.focus()
-          }}
-          type="button">
+          <button
+            onClick={() => {
+              setShowTagInput(true);
+              tagInput.current?.focus();
+            }}
+            type="button"
+          >
             <PlusIcon size={12} className="" />
           </button>
         </form>
@@ -138,14 +152,14 @@ const NoteCard = ({
 
   switch (note.type) {
     case "url":
-    case "video":
+    case "media+video":
       comp = <BookmarkCard note={note} />;
       break;
-    case "image":
+    case "media+image":
       comp = <ImageCard note={note} />;
       break;
-    case "person":
-      comp = <PersonCard person={note} />;
+    case "contact":
+      comp = <ContactCard contact={note} />;
       break;
     default:
       comp = <BasicNote note={note} />;
@@ -153,10 +167,11 @@ const NoteCard = ({
 
   return (
     <NoteContainer
-      id={note._id || ''}
+      id={note._id || ""}
       onAction={onAction}
       isPinned={note.isPinned}
       tags={note.tags ?? []}
+      createdAt={note.createdAt || new Date().getTime()}
     >
       {comp}
     </NoteContainer>
@@ -168,7 +183,9 @@ export default NoteCard;
 const BasicNote = ({ note }: { note: Note }) => (
   <Link href={`/edit/${note._id}`} className="p-4 block">
     <p className="font-bold">{note.title && note.title}</p>
-    <p className="text-sm text-muted mt-3">{note.description && note.description}</p>
+    <p className="text-sm text-muted mt-3">
+      {note.description && note.description}
+    </p>
   </Link>
 );
 
@@ -206,37 +223,55 @@ const ImageCard = ({ note }: { note: Note }) => (
   </Link>
 );
 
-const PersonCard = ({ person }: { person: Note }) => {
-  const emailhash = person.email && MD5(person.email);
+const ContactCard = ({ contact }: { contact: Note }) => {
+  const emailhash = contact.email && MD5(contact.email);
   const gravatarUrl = emailhash
     ? `https://www.gravatar.com/avatar/${emailhash}`
     : "";
 
   return (
     <div className="flex">
-      {gravatarUrl && (
+      {/* {gravatarUrl && (
         <div className="w-4/10 p-4">
           <img
             src={gravatarUrl}
             className="rounded-full shadow object-cover "
           />
         </div>
-      )}
+      )} */}
 
       <div className="flex flex-col px-2 py-4 w-6/10">
-        <h4 className="font-medium">{person.title}</h4>
-        <p className="text-muted text-sm flex items-center gap-2 mt-2 hover:text-black">
+        <h4 className="font-medium">{contact.title}</h4>
+        <p className="text-muted text-sm flex items-center gap-2 mt-2 hover:text-black break-words line-clamp-1">
           <MailIcon size={12} />
-          {person.email}
+          {contact.email}
         </p>
-        {person.site && (
+        {contact.linkedin && (
+          <p className="text-xs text-muted inline-flex gap-2 break-words line-clamp-1">
+            <LinkedinIcon size={12} />
+            <a href={contact.linkedin} target="_blank">
+              {contact.linkedin}
+            </a>
+          </p>
+        )}
+        {contact.phones &&
+          contact.phones.map((phone, index) => (
+            <p
+              key={index}
+              className="inline-flex gap-2 items-center text-xs text-muted"
+            >
+              <PhoneIcon size={12} />
+              {phone}
+            </p>
+          ))}
+        {contact.site && (
           <Link
             target="_blank"
-            href={person.site ?? ""}
-            className="flex  text-sm gap-2 items-center text-muted hover:text-black"
+            href={contact.site ?? ""}
+            className="flex  text-sm gap-2 items-center text-muted hover:text-black break-words line-clamp-1"
           >
             <Globe2Icon size={12} />
-            {person.site}
+            {contact.site}
           </Link>
         )}
       </div>

@@ -9,6 +9,9 @@ import {
   Clock10Icon,
   ClockIcon,
   TrashIcon,
+  TvMinimalPlayIcon,
+  Headphones,
+  BookOpenIcon
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -26,9 +29,24 @@ const nav = [
     href: "/clocks",
   },
   {
-    label: "People",
+    label: "Contacts",
     icon: GroupIcon,
-    href: "/people",
+    href: "/contacts",
+  },
+  {
+    label: 'Music',
+    icon: Headphones,
+    href: '/music'
+  },
+  {
+    label: "Watch",
+    icon: TvMinimalPlayIcon,
+    href: "/watch",
+  },
+  {
+    label: "Read later",
+    icon: BookOpenIcon,
+    href: "/read",
   },
   {
     label: "Tags",

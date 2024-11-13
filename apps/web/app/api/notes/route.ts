@@ -34,7 +34,7 @@ export async function GET(req: Request) {
 
   const title = url.searchParams.get('title')
   if (title) {
-    filters.title = { $regex: title, $options: 'i' }
+    filters.$or = [{ title: { $regex: title, $options: 'i' } }, { tags: { $in: [title] } }]
   }
 
   const linkedin = url.searchParams.get('linkedin')
@@ -42,6 +42,10 @@ export async function GET(req: Request) {
     filters.$or = [{ linkedin: linkedin }, { target: linkedin }]
   }
 
+  const tags = url.searchParams.get('tags')
+  if (tags) {
+    filters.tags = { $in: tags.split(',') }
+  }
   // @ts-expect-error not sure how to fix filters
   const notes = await client.db("rateeb").collection<Note>("notes").find(filters).sort({ target: 1, isPinned: -1, createdAt: -1 }).toArray();
 

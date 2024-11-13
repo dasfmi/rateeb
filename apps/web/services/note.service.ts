@@ -13,7 +13,6 @@ export const create = async (note: Note | string): Promise<Note | null> => {
         type: "note",
         tags: []
     }
-    console.log({ note })
     if (typeof note === 'string') {
         payload = await processNote(note)
     } else {
@@ -47,40 +46,53 @@ export const processNote = async (text: string): Promise<any> => {
         tags: []
     }
 
-    if (note.text?.startsWith('https://maps.app.goo.gl')) {
-        // check if note is a location, i.e: google maps link
-        note.url = note.text
-        note.title = "location"
-        note.description = "location"
-        note.type = 'location'
-    } else if (text?.startsWith('http')) {
+    if (text?.startsWith('http')) {
         // check if the note is a url
         try {
             const url = new URL(text)
             // check the media type
-            const meta = await fetch(`https://api.microlink.io?url=${text}&screenshot`).then(r => r.json())
+            const { meta } = await fetch(`http://localhost:3000/api/metadata?url=${encodeURIComponent(url.toString())}`).then(r => r.json())
             note.url = text
-            note.title = meta.data.title
-            note.description = meta.data.description
+            note.title = meta.title
+            note.description = meta.description
             note.hostname = url.hostname
-            note.image = meta.data.image && meta.data.image.url ? meta.data.image.url : meta.data.screenshot.url
+            note.image = meta.image ? meta.image : ''
 
-            if (note.hostname === 'youtube.com' || note.hostname.startsWith('www.youtube.com')) {
-                note.type = "video"
-            } else if (meta.headers['content-type'].startsWith('image')) {
-                note.type = "image"
+            console.log({contentType: meta.contentType})
+
+            if (isYoutubeVideo(url)) {
+                note.type = "media+video"
+                note.platform = "youtube"
+            } else if (meta.contentType.startsWith('image')) {
+                note.type = "media+image"
+            } else if (text.startsWith('https://maps.app.goo.gl') || text.startsWith('https://www.google.com/maps') || text.startsWith('https://maps.google.com')) {
+                note.type = 'location'
             } else {
                 note.type = "url"
             }
         } catch (e) {
+            console.error(e)
             // if we fail to fetch the url, we just save it as a text
+            note.title = text
+            note.description = 'failed to fetch information ...'
             note.type = 'url'
             note.url = text
         }
     } else {
-        note.text = text ?? ''
+        note.title = text
+        note.description = text ?? ''
     }
 
     note.createdAt = new Date().getTime()
     return note
+}
+
+const isYoutubeVideo = (url: URL): boolean => {
+    console.log({pathname: url.pathname})
+    if (url.pathname === "/") {
+        // we don't want to treat youtube homepage as video
+        console.log('youtube homepage')
+        return false
+    }
+    return url.hostname.startsWith('youtube.com') || url.hostname.startsWith('www.youtube.com') || url.host.startsWith('https://youtu.be')
 }
