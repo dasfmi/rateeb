@@ -17,7 +17,7 @@ import { useEffect, useState } from "react";
 type Props = {
   constraints?: {
     type?: string;
-    tags?: any;
+    tags?: string;
   };
 };
 
@@ -75,18 +75,18 @@ export default function NotesManager({ constraints }: Props) {
     }
     switch (action) {
       case "pin":
+        notes[index].isPinned = true;
+        // move to the top
+        setNotes([notes[index], ...notes.filter((n, i) => i !== index)]);
         await fetch("/api/notes/" + id, {
           method: "PATCH",
           body: JSON.stringify({
             action: "pin",
           }),
         });
-        notes[index].isPinned = true;
-        // move to the top
-        setNotes([notes[index], ...notes.filter((n, i) => i !== index)]);
         break;
       case "delete":
-        const note = notes[index];
+        // const note = notes[index];
         setNotes(notes.filter((_n, i) => i !== index));
         try {
           await fetch("/api/notes/" + id, {
@@ -137,7 +137,7 @@ export default function NotesManager({ constraints }: Props) {
         console.error(e);
         setIsLoading(false);
       });
-  }, []);
+  }, [constraints]);
 
   const refetch = async () => {
     setNotes([]);
@@ -177,6 +177,7 @@ export default function NotesManager({ constraints }: Props) {
             onChange={filterByType}
           >
             <option value="">All</option>
+            <option value="doc">Document</option>
             <option value="note">Note</option>
             <option value="url">URL</option>
             <option value="image">Image</option>

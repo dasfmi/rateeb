@@ -14,6 +14,7 @@ import Warning from '@editorjs/warning';
 import Table from '@editorjs/table'
 // @ts-expect-error - no types available
 import Marker from '@editorjs/marker';
+import ImageTool from '@editorjs/image';
 import { useEffect, useRef } from "react";
 import { NotePreview } from "./plugins/NotePreview";
 
@@ -63,10 +64,19 @@ export default function Editor({ data, onChange, holder }: Props) {
             // @ts-expect-error - we need to fix this
             class: NotePreview,
             inlineToolbar: true,
-          }
+          },
+          image: {
+            class: ImageTool,
+            config: {
+              endpoints: {
+                byFile: '/api/images', // Your backend file uploader endpoint
+                byUrl: '/api/images', // Your endpoint that provides uploading by Url
+              }
+            }
+          },
         },
         data,
-        async onChange(api, event) {
+        async onChange(api) {
           const content = await api.saver.save();
           onChange(content);
         },

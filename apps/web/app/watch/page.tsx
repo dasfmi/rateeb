@@ -95,14 +95,6 @@ export default function Watch() {
       });
   }, []);
 
-  const refetch = async () => {
-    setNotes([])
-    setIsLoading(true);
-    const notes = await loadNotes({ noCache: true });
-    setNotes(notes);
-    setIsLoading(false);
-  };
-
   return (
     <div className="flex flex-col h-full overflow-y-auto w-full max-w-full relative">
       <div className="flex p-4 gap-3 right-0 left-0 z-20 bg-neutral-50 border-b items-center absolute">

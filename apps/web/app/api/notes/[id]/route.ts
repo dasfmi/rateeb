@@ -5,7 +5,6 @@ import { ObjectId } from "mongodb";
 export const GET = withDB(async (req, { params }) => {
   const id = ObjectId.createFromHexString(params.id)
   const resp = await req.db.collection("notes").findOne({ _id: id })
-  console.log({resp})
 
   return Response.json({ ok: true, data: resp })
 })

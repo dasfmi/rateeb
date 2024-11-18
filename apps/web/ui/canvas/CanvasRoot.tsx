@@ -3,6 +3,7 @@ import { PointerEvent, useEffect, useRef, WheelEvent } from "react";
 import useSize from "@react-hook/size";
 import InfiniteCanvas from "./InfiniteCanvas";
 import useRenderLoop from "./loop";
+import { OutputData } from "@editorjs/editorjs";
 
 const wheelListener = (e: WheelEvent) => {
   const friction = 1;
@@ -20,7 +21,7 @@ const pointerListener = (event: PointerEvent) => {
   CanvasStore.movePointer(event.clientX, event.clientY);
 };
 
-const CanvasRoot = () => {
+const CanvasRoot = ({}: { data: OutputData }) => {
   const canvas = useRef<HTMLDivElement>(null);
   const [width, height] = useSize(canvas);
   useEffect(() => {

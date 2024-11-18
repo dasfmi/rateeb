@@ -14,70 +14,74 @@ const TextEditor = dynamic(() => import("@/ui/TextEditor"), {
 
 export default function EditBlock({ params }: { params: { id: string } }) {
   const query = useSearchParams();
-  const [id, setID] = useState<string>();
+  const [id, setID] = useState<string>("new");
+  const [data, setData] = useState<OutputData>({
+    blocks: [],
+  });
   const [isLoading, setIsLoading] = useState(true);
   const type = query.get("type") || "note";
 
+  const onSave = async (payload: OutputData) => {
+    if (id === 'new') {
+      const resp = await fetch("/api/notes", {
+        method: "POST",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((r) => r.json());
+
+      setID(resp.data._id);
+    } else {
+      await fetch(`/api/notes/${id}`, {
+        method: "PUT",
+        body: JSON.stringify(payload),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }).then((r) => r.json()).catch(console.error);
+    }
+  };
+
   useEffect(() => {
     if (params.id !== "new") {
       fetch("/api/notes/" + params.id)
         .then((resp) => resp.json())
         .then((data) => {
-          console.log("data is", data.data.body);
           setID(params.id);
-          // setData(data.data.body);
+          setData(data.data ?? { blocks: [] });
           setIsLoading(false);
         });
     } else {
       setIsLoading(false);
     }
   }, [params.id]);
+
+  if (isLoading) {
+    return (
+      <div className="bg-white w-full h-screen p-4 text-center flex items-center justify-center">
+        <Spinner />
+      </div>
+    );
+  }
 
   switch (type) {
     case "canvas":
-      return <CanvasRoot />;
+      return <CanvasRoot data={data} />;
     default:
-      return <EditDocument params={params} />;
+      return <EditDocument id={id} data={data} onSave={onSave} />;
   }
 }
 
-function EditDocument({ params }: { params: { id: string } }) {
-  const query = useSearchParams();
-  const [id, setID] = useState<string>();
-  const [data, setData] = useState<OutputData>({
-    blocks: [
-      // {
-      //   type: "header",
-      //   data: {
-      //     text: "New Document",
-      //     level: 1,
-      //   },
-      // },
-      // {
-      //   type: "paragraph",
-      //   data: {
-      //     text: "Start writing your document",
-      //   },
-      // },
-    ],
-  });
-  const [isLoading, setIsLoading] = useState(true);
+function EditDocument({
+  data,
+  onSave,
+}: {
+  id: string;
+  data: OutputData;
+  onSave: (payload: OutputData) => void;
+}) {
   const [notes, setNotes] = useState<Note[]>([]);
-
-  useEffect(() => {
-    if (params.id !== "new") {
-      fetch("/api/notes/" + params.id)
-        .then((resp) => resp.json())
-        .then((data) => {
-          console.log("data is", data.data.body);
-          setID(params.id);
-          setData(data.data.body);
-          setIsLoading(false);
-        });
-    } else {
-      setIsLoading(false);
-    }
-  }, [params.id]);
 
   useEffect(() => {
     loadNotes({}).then((notes) => {
@@ -107,48 +111,16 @@ function EditDocument({ params }: { params: { id: string } }) {
     }
 
     const payload = {
-      type: "note",
+      type: "doc",
       title,
       description,
-      body: data,
+      blocks: data.blocks,
+      version: data.version,
       updatedAt: data.time,
     };
 
-    console.log("checking for id", id);
-    if (!id) {
-      const resp = await fetch("/api/notes", {
-        method: "POST",
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then((r) => r.json());
-
-      console.log("created new document", resp.data._id);
-      setID(resp.data._id);
-      console.log("id has been set to", id);
-    } else {
-      console.log("it should update the document", { id });
-
-      await fetch(`/api/notes/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(payload),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }).then((r) => r.json());
-
-      console.log("update note", id);
-    }
+    onSave(payload);
   };
-
-  if (isLoading) {
-    return (
-      <div className="bg-white w-full h-screen p-4 text-center flex items-center justify-center">
-        <Spinner />
-      </div>
-    );
-  }
 
   return (
     <div className="flex w-full h-full overflow-y-auto">

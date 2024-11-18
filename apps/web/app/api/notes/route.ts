@@ -47,7 +47,7 @@ export async function GET(req: Request) {
     filters.tags = { $in: tags.split(',') }
   }
   // @ts-expect-error not sure how to fix filters
-  const notes = await client.db("rateeb").collection<Note>("notes").find(filters).sort({ target: 1, isPinned: -1, createdAt: -1 }).toArray();
+  const notes = await client.db("rateeb").collection<Note>("notes").find(filters).sort({ updatedAt: -1 }).toArray();
 
   // const findRelated = url.searchParams.get('related')
   // let related: Note[] = []
