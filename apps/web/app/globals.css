@@ -80,3 +80,7 @@
 body {
   @apply bg-neutral-100;
 }
+
+.card {
+  @apply bg-white shadow-md rounded-lg p-4 border;
+}

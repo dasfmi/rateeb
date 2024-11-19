@@ -3,7 +3,7 @@ import { PutObjectCommand } from "@aws-sdk/client-s3";
 import S3 from "@/lib/r2";
 import { ObjectId } from "mongodb";
 
-
+export const runtime = 'edge';
 // const baseUrl = `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID}`
 
 // const getPresignedUploadUrl = () => {
@@ -22,7 +22,7 @@ import { ObjectId } from "mongodb";
 
 export async function POST(request: NextRequest) {
     const filename = 'dasfmi/' + new ObjectId().toHexString() + '.jpg'
-    console.log({ filename })
+    
     const file = await request.blob()
 
     try {

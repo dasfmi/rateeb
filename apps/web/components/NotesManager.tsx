@@ -1,6 +1,7 @@
 "use client";
-import { Note } from "@/entity";
+import { Note, Project } from "@/entity";
 import { loadNotes } from "@/services/notes.client";
+import useNotificationsStore from "@/store/notifications.store";
 import usePrefStore from "@/store/pref.store";
 import NotesContainer from "@/ui/NotesColumns";
 import {
@@ -22,10 +23,15 @@ type Props = {
 };
 
 export default function NotesManager({ constraints }: Props) {
-  const [notes, setNotes] = useState<Note[]>([]);
+  const initialNotes = localStorage.getItem('notes') ? JSON.parse(localStorage.getItem('notes') || '')?.notes : []
+  const [notes, setNotes] = useState<Note[]>(initialNotes);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [showAttachToProjectDialog, setShowAttachToProjectDialog] =
+    useState<string>();
+  const [projects, setProjects] = useState<Project[]>([]);
   const { isSidebarOpen, setIsSidebarOpen } = usePrefStore();
+  const { queueNotification } = useNotificationsStore()
 
   const addNewNote = async (e: FormData) => {
     setIsCreating(true);
@@ -119,6 +125,8 @@ export default function NotesManager({ constraints }: Props) {
         }
 
         break;
+      case "attachToProject":
+        setShowAttachToProjectDialog(notes[index]._id);
       default:
         break;
     }
@@ -133,11 +141,27 @@ export default function NotesManager({ constraints }: Props) {
         setNotes(notes);
         setIsLoading(false);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((err) => {
+        if (err instanceof Error) {
+          console.log(err.message);
+          queueNotification({title: 'Error', description: err.message, color: 'danger'})
+        }
         setIsLoading(false);
       });
   }, [constraints]);
+
+  useEffect(() => {
+    fetch("/api/projects")
+      .then((resp) => resp.json())
+      .then((resp) => resp.data)
+      .then(setProjects)
+      .catch((err) => {
+        if (err instanceof Error) {
+          console.log(err.message);
+          queueNotification({title: 'Error', description: err.message, color: 'danger'})
+        }
+      });
+  }, []);
 
   const refetch = async () => {
     setNotes([]);
@@ -235,9 +259,67 @@ export default function NotesManager({ constraints }: Props) {
       <div className="overflow-y-auto max-w-full p-4 pt-24">
         <NotesContainer notes={notes} onAction={onActionClicked} />
       </div>
+
+      <div
+        className={`${showAttachToProjectDialog ? "absolute w-[60ch] h-auto rounded-xl shadow border p-4 top-24 bg-white z-40 left-[7.5%] flex flex-col" : "hidden"}`}
+      >
+        <AttachToProjectModal
+          projects={projects}
+          noteId={showAttachToProjectDialog}
+        />
+      </div>
     </div>
   );
 }
+
+const AttachToProjectModal = ({
+  projects,
+  noteId,
+}: {
+  projects: Project[];
+  noteId: string | undefined;
+}) => {
+  
+  const { queueNotification } = useNotificationsStore()
+
+  const onAttachToProject = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const resp = await fetch(
+      `/api/projects/${e.currentTarget.projectId.value}/notes`,
+      {
+        method: "POST",
+        body: JSON.stringify({ noteId }),
+      }
+    ).then((resp) => resp.json());
+
+    if (resp.ok) {
+      alert("Note attached to project successfully");
+      queueNotification({title: 'Note added to project', description: "Note attached to project successfully", color: 'success'})
+    } else {
+      alert("Failed to attach note to project");
+      queueNotification({title: 'Error', description: "Failed to attach note", color: 'danger'})
+    }
+  };
+
+  return (
+    <>
+      <h4>Attach note to project</h4>
+      <form onSubmit={onAttachToProject}>
+        <select name="projectId" className="rounded-xl border px-4 py-2">
+          <option value="">Select a project</option>
+          {projects.map((proj) => (
+            <option key={proj._id} value={proj._id}>
+              {proj.title}
+            </option>
+          ))}
+        </select>
+        <button type="submit" className="btn-primary">
+          Attach
+        </button>
+      </form>
+    </>
+  );
+};
 
 const AddMenu = () => {
   const [isOpen, setIsOpen] = useState(false);

@@ -134,6 +134,14 @@ const NoteContainer = ({
                 <Edit2Icon size={16} /> Edit
               </button>
             </li>
+            <li className="list-none hover:bg-black hover:text-white last:rounded-b-xl">
+              <button
+                onClick={() => onAction("attachToProject")}
+                className="flex gap-2 items-center p-4"
+              >
+                <Edit2Icon size={16} /> Attach to project
+              </button>
+            </li>
           </nav>
         </div>
       )}

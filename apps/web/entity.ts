@@ -30,3 +30,13 @@ export type Note = {
     // media
     platform?: string;
 };
+
+export type Project = {
+    _id?: string;
+    title: string;
+    description?: string;
+    // tags: string[];
+    notes: string[]
+    isDeleted?: boolean;
+    createdAt: number;
+}
