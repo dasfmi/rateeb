@@ -1,6 +1,7 @@
 "use client";
 import { Note, Project } from "@/entity";
 import NotesContainer from "@/ui/NotesColumns";
+import { Flex, Heading } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 
 export default function ProjectDetails({ params }: { params: { id: string } }) {
@@ -24,10 +25,10 @@ export default function ProjectDetails({ params }: { params: { id: string } }) {
   return (
     <>
       {project && (
-        <section className="bg-white py-2 px-10 border-b">
-          <h5 className="leading-9">{project.title}</h5>
-          <p className="text-muted text-sm">{project.description}</p>
-        </section>
+        <Flex className="border-b items-center" gap="2" py="1">
+          <Heading size="5">{project.title}</Heading>
+          {/* <p className="text-muted text-sm">{project.description}</p> */}
+        </Flex>
       )}
       <div className="container mt-4">
         {isLoading && <p>Loading...</p>}

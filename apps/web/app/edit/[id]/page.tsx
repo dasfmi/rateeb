@@ -7,14 +7,14 @@ import Spinner from "@/ui/Spinner";
 import { OutputData } from "@editorjs/editorjs";
 import dynamic from "next/dynamic";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 const TextEditor = dynamic(() => import("@/ui/TextEditor"), {
   ssr: false,
 });
 
 export default function EditBlock({ params }: { params: { id: string } }) {
   const query = useSearchParams();
-  const [id, setID] = useState<string>("new");
+  const id = useRef("new");
   const [data, setData] = useState<OutputData>({
     blocks: [],
   });
@@ -22,7 +22,7 @@ export default function EditBlock({ params }: { params: { id: string } }) {
   const type = query.get("type") || "note";
 
   const onSave = async (payload: OutputData) => {
-    if (id === 'new') {
+    if (id.current === "new") {
       const resp = await fetch("/api/notes", {
         method: "POST",
         body: JSON.stringify(payload),
@@ -31,15 +31,22 @@ export default function EditBlock({ params }: { params: { id: string } }) {
         },
       }).then((r) => r.json());
 
-      setID(resp.data._id);
+      console.log("new doc created", { resp });
+
+      // setID(resp.data._id);
+      id.current = resp.data._id;
+
+      console.log("id updated", id.current);
     } else {
-      await fetch(`/api/notes/${id}`, {
+      await fetch(`/api/notes/${id.current}`, {
         method: "PUT",
         body: JSON.stringify(payload),
         headers: {
           "Content-Type": "application/json",
         },
-      }).then((r) => r.json()).catch(console.error);
+      })
+        .then((r) => r.json())
+        .catch(console.error);
     }
   };
 
@@ -48,7 +55,8 @@ export default function EditBlock({ params }: { params: { id: string } }) {
       fetch("/api/notes/" + params.id)
         .then((resp) => resp.json())
         .then((data) => {
-          setID(params.id);
+          // setID(params.id);
+          id.current = params.id;
           setData(data.data ?? { blocks: [] });
           setIsLoading(false);
         });
@@ -77,7 +85,7 @@ function EditDocument({
   data,
   onSave,
 }: {
-  id: string;
+  // id: string;
   data: OutputData;
   onSave: (payload: OutputData) => void;
 }) {

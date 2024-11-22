@@ -1,7 +1,10 @@
-@tailwind base;
+@import "tailwindcss/base";
+@import "@radix-ui/themes/styles.css";
+
 @tailwind components;
 @tailwind utilities;
 
+/* 
 @layer base {
   [type="checkbox"] {
     @apply w-11 h-0 cursor-pointer inline-block;
@@ -83,4 +86,4 @@ body {
 
 .card {
   @apply bg-white shadow-md rounded-lg p-4 border;
-}
+} */

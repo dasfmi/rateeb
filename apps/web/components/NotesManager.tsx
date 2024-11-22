@@ -4,6 +4,15 @@ import { loadNotes } from "@/services/notes.client";
 import useNotificationsStore from "@/store/notifications.store";
 import usePrefStore from "@/store/pref.store";
 import NotesContainer from "@/ui/NotesColumns";
+import { MagnifyingGlassIcon } from "@radix-ui/react-icons";
+import {
+  Box,
+  Button,
+  Flex,
+  Select,
+  Separator,
+  TextField,
+} from "@radix-ui/themes";
 import {
   LoaderIcon,
   MenuIcon,
@@ -23,15 +32,14 @@ type Props = {
 };
 
 export default function NotesManager({ constraints }: Props) {
-  const initialNotes = localStorage.getItem('notes') ? JSON.parse(localStorage.getItem('notes') || '')?.notes : []
-  const [notes, setNotes] = useState<Note[]>(initialNotes);
+  const [notes, setNotes] = useState<Note[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
   const [showAttachToProjectDialog, setShowAttachToProjectDialog] =
     useState<string>();
   const [projects, setProjects] = useState<Project[]>([]);
   const { isSidebarOpen, setIsSidebarOpen } = usePrefStore();
-  const { queueNotification } = useNotificationsStore()
+  const { queueNotification } = useNotificationsStore();
 
   const addNewNote = async (e: FormData) => {
     setIsCreating(true);
@@ -59,10 +67,10 @@ export default function NotesManager({ constraints }: Props) {
     setIsLoading(false);
   };
 
-  const filterByType = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    e.preventDefault();
+  const filterByType = async (type: string) => {
+    // e.preventDefault();
     setNotes([]);
-    const type = e.target.value;
+    // const type = e.target.value;
     setIsLoading(true);
 
     const notes = await loadNotes({ type });
@@ -134,17 +142,26 @@ export default function NotesManager({ constraints }: Props) {
 
   useEffect(() => {
     setIsLoading(true);
+    const initialNotes: Note[] = localStorage.getItem("notes")
+      ? JSON.parse(localStorage.getItem("notes") || "").data
+      : [];
+    setNotes(initialNotes);
     loadNotes({
       ...constraints,
     })
       .then((notes) => {
+        console.log({ notes });
         setNotes(notes);
         setIsLoading(false);
       })
       .catch((err) => {
         if (err instanceof Error) {
           console.log(err.message);
-          queueNotification({title: 'Error', description: err.message, color: 'danger'})
+          queueNotification({
+            title: "Error",
+            description: err.message,
+            color: "danger",
+          });
         }
         setIsLoading(false);
       });
@@ -158,7 +175,11 @@ export default function NotesManager({ constraints }: Props) {
       .catch((err) => {
         if (err instanceof Error) {
           console.log(err.message);
-          queueNotification({title: 'Error', description: err.message, color: 'danger'})
+          queueNotification({
+            title: "Error",
+            description: err.message,
+            color: "danger",
+          });
         }
       });
   }, []);
@@ -172,43 +193,61 @@ export default function NotesManager({ constraints }: Props) {
   };
 
   return (
-    <div className="flex flex-col h-full overflow-y-auto w-full max-w-full relative">
-      <div className="flex p-4 gap-3 right-0 left-0 z-20 bg-neutral-50 border-b items-center absolute">
-        <button
+    <Flex direction="column" width={"full"} className="relative">
+      {/* <div className="flex flex-col h-full overflow-y-auto w-full max-w-full relative"> */}
+      <Flex
+        direction={"row"}
+        px="6"
+        py="2"
+        gap="3"
+        className="right-0 left-0 z-20 items-center absolute text-xs"
+      >
+        {/* <div className="flex px-6 py-2 gap-3 right-0 left-0 z-20 border-b items-center absolute text-xs bg-white"> */}
+        <Button
           className="flex lg:hidden"
           onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          variant="soft"
+          size="2"
         >
           <MenuIcon size={16} />
-        </button>
-        <h3 className="text-center">Notes</h3>
+        </Button>
+        <span className="">Notes</span>
 
         <form
           onSubmit={onSearch}
           className="hidden lg:flex gap-3 items-center w-1/3"
         >
-          <div className="inline-flex gap-2 items-center border rounded-xl px-4 py-2 bg-white">
-            <SearchIcon size={16} className="text-gray-400" />
-            <input
-              type="search"
-              className="focus:outline-none text-gray-800"
-              placeholder="search by title..."
-              name="search"
-            />
-          </div>
-          <select
-            className="px-4 py-2 rounded-xl border focus:outline-none"
-            name="type"
-            onChange={filterByType}
+          {/* <div className="inline-flex gap-2 items-center border rounded-xl px-4 py-2 "> */}
+          {/* <SearchIcon size={16} className="text-gray-400" /> */}
+          <TextField.Root
+            type="search"
+            className="border-l-none"
+            placeholder="search by title..."
+            name="search"
           >
-            <option value="">All</option>
-            <option value="doc">Document</option>
-            <option value="note">Note</option>
-            <option value="url">URL</option>
-            <option value="image">Image</option>
-            <option value="video">Video</option>
-            <option value="person">Person</option>
-            <option value="other">Other</option>
-          </select>
+            <TextField.Slot>
+              <MagnifyingGlassIcon />
+            </TextField.Slot>
+          </TextField.Root>
+          {/* </div> */}
+          <Select.Root
+            // className="px-4 py-2 rounded-xl border focus:outline-none"
+            name="type"
+            onValueChange={filterByType}
+          >
+            <Select.Trigger placeholder="Type" />
+            <Select.Content>
+              {/* <Select.Label>Select note type</Select.Label> */}
+              {/* <Select.Item value="">All</Select.Item> */}
+              <Select.Item value="doc">Document</Select.Item>
+              <Select.Item value="note">Note</Select.Item>
+              <Select.Item value="url">URL</Select.Item>
+              <Select.Item value="image">Image</Select.Item>
+              <Select.Item value="video">Video</Select.Item>
+              <Select.Item value="person">Person</Select.Item>
+              <Select.Item value="other">Other</Select.Item>
+            </Select.Content>
+          </Select.Root>
         </form>
         {/* <h3 className="pl-[9rem] w-1/3">Notes</h3> */}
         <span className="flex-1" />
@@ -249,14 +288,17 @@ export default function NotesManager({ constraints }: Props) {
         <button onClick={refetch} className="btn-primary">
           Refresh
         </button>
-      </div>
+      </Flex>
+
+      {/* <Separator my="3" size="4" /> */}
+
       {isLoading && (
         <div className="mt-24 mx-auto text-center animate-spin">
           <LoaderIcon size={24} />
         </div>
       )}
 
-      <div className="overflow-y-auto max-w-full p-4 pt-24">
+      <div className="overflow-y-auto max-w-full py-16">
         <NotesContainer notes={notes} onAction={onActionClicked} />
       </div>
 
@@ -268,7 +310,8 @@ export default function NotesManager({ constraints }: Props) {
           noteId={showAttachToProjectDialog}
         />
       </div>
-    </div>
+      {/* </div> */}
+    </Flex>
   );
 }
 
@@ -279,8 +322,7 @@ const AttachToProjectModal = ({
   projects: Project[];
   noteId: string | undefined;
 }) => {
-  
-  const { queueNotification } = useNotificationsStore()
+  const { queueNotification } = useNotificationsStore();
 
   const onAttachToProject = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -294,10 +336,18 @@ const AttachToProjectModal = ({
 
     if (resp.ok) {
       alert("Note attached to project successfully");
-      queueNotification({title: 'Note added to project', description: "Note attached to project successfully", color: 'success'})
+      queueNotification({
+        title: "Note added to project",
+        description: "Note attached to project successfully",
+        color: "success",
+      });
     } else {
       alert("Failed to attach note to project");
-      queueNotification({title: 'Error', description: "Failed to attach note", color: 'danger'})
+      queueNotification({
+        title: "Error",
+        description: "Failed to attach note",
+        color: "danger",
+      });
     }
   };
 
@@ -305,14 +355,17 @@ const AttachToProjectModal = ({
     <>
       <h4>Attach note to project</h4>
       <form onSubmit={onAttachToProject}>
-        <select name="projectId" className="rounded-xl border px-4 py-2">
-          <option value="">Select a project</option>
-          {projects.map((proj) => (
-            <option key={proj._id} value={proj._id}>
-              {proj.title}
-            </option>
-          ))}
-        </select>
+        <Select.Root name="projectId">
+          <Select.Trigger />
+          <Select.Content>
+            {/* <Select.Item value="">Select a project</Select.Item> */}
+            {projects.map((proj) => (
+              <Select.Item key={proj._id} value={proj._id!}>
+                {proj.title}
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select.Root>
         <button type="submit" className="btn-primary">
           Attach
         </button>
@@ -327,7 +380,7 @@ const AddMenu = () => {
   return (
     <div className="relative">
       <button
-        className="btn-primary flex gap-2 h-full py-3"
+        className="btn-primary flex gap-2 h-full"
         onClick={() => setIsOpen(!isOpen)}
       >
         <PlusIcon size={16} />
