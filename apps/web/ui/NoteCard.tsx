@@ -14,8 +14,18 @@ import {
 } from "lucide-react";
 import { FormEvent, ReactNode, useRef, useState } from "react";
 import Tag from "./Tag";
-import { Box, Card, Link, Text, IconButton, Inset } from "@radix-ui/themes";
+import {
+  Box,
+  Card,
+  Link,
+  IconButton,
+  Inset,
+  Flex,
+  Text,
+  Heading,
+} from "@radix-ui/themes";
 import { PlusIcon } from "@radix-ui/react-icons";
+import AttachToProjectDialog from "@/components/AttachToProjectDialog";
 
 const NoteContainer = ({
   children,
@@ -148,12 +158,14 @@ const NoteContainer = ({
                 </button>
               </li>
               <li className="list-none hover:bg-black hover:text-white last:rounded-b-xl">
-                <button
-                  onClick={() => onAction("attachToProject")}
-                  className="flex gap-2 items-center p-4"
-                >
-                  <Edit2Icon size={16} /> Attach to project
-                </button>
+                <AttachToProjectDialog noteId={id}>
+                  <button
+                    onClick={() => onAction("attachToProject")}
+                    className="flex gap-2 items-center p-4"
+                  >
+                    <Edit2Icon size={16} /> Attach to project
+                  </button>
+                </AttachToProjectDialog>
               </li>
             </nav>
           </div>
@@ -205,10 +217,12 @@ export default NoteCard;
 
 const BasicNote = ({ note }: { note: Note }) => (
   <Link href={`/edit/${note._id}`} className="p-4 block">
-    <p className="font-bold">{note.title && note.title}</p>
-    <p className="text-sm text-muted mt-3">
+    <Heading size="4" weight={"bold"}>
+      {note.title && note.title}
+    </Heading>
+    <Text color="gray" size="2">
       {note.description && note.description}
-    </p>
+    </Text>
   </Link>
 );
 
@@ -230,7 +244,6 @@ const BookmarkCard = ({ note }: { note: Note }) => (
       <p className="text-xs text-muted">{note.hostname && note.hostname}</p>
       {note.description && (
         <Text size="1" color="gray" className="text-wrap break-words" mt="3">
-          
           {note.description}
         </Text>
       )}
@@ -255,7 +268,7 @@ const ContactCard = ({ contact }: { contact: Note }) => {
     : "";
 
   return (
-    <div className="flex">
+    <Flex>
       {/* {gravatarUrl && (
         <div className="w-4/10 p-4">
           <img
@@ -269,14 +282,16 @@ const ContactCard = ({ contact }: { contact: Note }) => {
         <h4 className="font-medium">{contact.title}</h4>
         <p className="text-muted text-sm flex items-center gap-2 mt-2 hover:text-black break-words line-clamp-1">
           <MailIcon size={12} />
-          {contact.email}
+          <Text color="gray" size={"1"}>
+            {contact.email}
+          </Text>
         </p>
         {contact.linkedin && (
           <p className="text-xs text-muted inline-flex gap-2 break-words line-clamp-1">
             <LinkedinIcon size={12} />
-            <a href={contact.linkedin} target="_blank">
+            <Link href={contact.linkedin} target="_blank">
               {contact.linkedin}
-            </a>
+            </Link>
           </p>
         )}
         {contact.phones &&
@@ -286,7 +301,7 @@ const ContactCard = ({ contact }: { contact: Note }) => {
               className="inline-flex gap-2 items-center text-xs text-muted"
             >
               <PhoneIcon size={12} />
-              {phone}
+              <Text>{phone}</Text>
             </p>
           ))}
         {contact.site && (
@@ -296,10 +311,12 @@ const ContactCard = ({ contact }: { contact: Note }) => {
             className="flex  text-sm gap-2 items-center text-muted hover:text-black break-words line-clamp-1"
           >
             <Globe2Icon size={12} />
-            {contact.site}
+            <Text color="gray" size="1">
+              {contact.site}
+            </Text>
           </Link>
         )}
       </div>
-    </div>
+    </Flex>
   );
 };

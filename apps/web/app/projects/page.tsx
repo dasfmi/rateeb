@@ -1,5 +1,4 @@
 "use client";
-import { Project } from "@/entity";
 import useProjectsStore from "@/store/projects.store";
 import {
   Button,
@@ -12,34 +11,16 @@ import {
   TextField,
   Table,
   Link,
+  Heading,
 } from "@radix-ui/themes";
 import { PlusIcon } from "@radix-ui/react-icons";
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
+import useAppStore from "@/store/loadingIndicator.store";
 
 export default function Projects() {
   const [view, setView] = useState<"grid" | "list">("grid");
-  const [isLoading, setIsLoading] = useState(true);
+  const { setIsLoading } = useAppStore();
   const { projects, setProjects } = useProjectsStore();
-
-  const createNewProject = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    const title = e.currentTarget.projTitle.value;
-    const desc = e.currentTarget.description.value;
-    const proj = {
-      title,
-      description: desc,
-      createdAt: new Date().getTime(),
-      notes: [],
-    };
-    setProjects([{ _id: "new", ...proj }, ...projects]);
-    await fetch("/api/projects", {
-      method: "POST",
-      body: JSON.stringify(proj),
-    })
-      .then((r) => r.json())
-      .catch(console.error);
-  };
 
   useEffect(() => {
     fetch("/api/projects")
@@ -51,16 +32,16 @@ export default function Projects() {
       })
       .catch(console.error)
       .finally(() => setIsLoading(false));
-  }, []);
+  }, [setIsLoading, setProjects]);
 
   return (
     <>
-      <Flex py="1" px="4" className="text-xs items-center border-b" gap="2">
-        <span className="leading-9">Projects</span>
-        <p className="text-muted">Organize your ideas into work directories</p>
+      <Flex py="2" px="4" className="items-center" gap="2">
+        <Heading size="1">Projects</Heading>
+        <Text color="gray">Organize your ideas into work directories</Text>
         <span className="flex-1" />
 
-        <NewProjectModal createNewProject={createNewProject} />
+        <NewProjectModal />
 
         <SegmentedControl.Root
           defaultValue={view}
@@ -85,8 +66,10 @@ export default function Projects() {
             {projects.map((proj) => (
               <Card key={proj._id}>
                 <Link href={`/projects/${proj._id}`}>
-                  <h5 className="font-bold leading-9">{proj.title}</h5>
-                  <p className="text-sm text-muted">{proj.description}</p>
+                  <Heading size="4">{proj.title}</Heading>
+                  <Text size="2" color="gray">
+                    {proj.description}
+                  </Text>
                 </Link>
               </Card>
             ))}
@@ -112,37 +95,47 @@ export default function Projects() {
               ))}
             </Table.Body>
           </Table.Root>
-
-          // <Flex direction={"column"} gap="4" mt="4">
-          //   {projects.map((proj) => (
-          //     <Flex direction={"row"} key={proj._id} className="divide-y">
-          //       <Link href={`/projects/${proj._id}`}>
-          //         <h5 className="font-bold leading-9">{proj.title}</h5>
-          //         {/* <p className="text-sm text-muted">{proj.description}</p> */}
-          //       </Link>
-          //     </Flex>
-          //   ))}
-          // </Flex>
         )}
 
-        {projects.length == 0 && isLoading === false && (
-          <p>No projects found</p>
-        )}
+        {projects.length == 0 && <p>No projects found</p>}
       </div>
     </>
   );
 }
 
-const NewProjectModal = ({
-  createNewProject,
-}: {
-  createNewProject: (e: any) => void;
-}) => {
+const NewProjectModal = ({}: {}) => {
+  const [open, setOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { projects, setProjects } = useProjectsStore();
+
+  const createNewProject = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setIsLoading(true);
+
+    const title = e.currentTarget.projTitle.value;
+    const desc = e.currentTarget.description.value;
+    const proj = {
+      title,
+      description: desc,
+      createdAt: new Date().getTime(),
+      notes: [],
+    };
+    setProjects([{ _id: "new", ...proj }, ...projects]);
+    await fetch("/api/projects", {
+      method: "POST",
+      body: JSON.stringify(proj),
+    })
+      .then((r) => r.json())
+      .catch(console.error);
+    setIsLoading(false);
+    setOpen(false)
+  };
+
   return (
-    <Dialog.Root>
+    <Dialog.Root open={open} onOpenChange={setOpen}>
       <Dialog.Trigger>
         <Button variant={"ghost"} size="1">
-          <PlusIcon size={12} />
+          <PlusIcon />
           Create project
         </Button>
       </Dialog.Trigger>
@@ -178,9 +171,9 @@ const NewProjectModal = ({
                   Cancel
                 </Button>
               </Dialog.Close>
-              <Dialog.Close>
-                <Button>Save</Button>
-              </Dialog.Close>
+              <Button type="submit" loading={isLoading}>
+                Save
+              </Button>
             </Flex>
           </Flex>
         </form>

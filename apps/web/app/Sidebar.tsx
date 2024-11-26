@@ -1,7 +1,10 @@
 "use client";
 import { formatTime } from "@/services/date.service";
+import useAppStore from "@/store/loadingIndicator.store";
 import usePrefStore from "@/store/pref.store";
-import { Text, Separator, Link } from "@radix-ui/themes";
+import * as NavigationMenu from "@radix-ui/react-navigation-menu";
+import { Text, Link, Flex, Spinner } from "@radix-ui/themes";
+import { CodeIcon } from "@radix-ui/react-icons";
 import {
   TagsIcon,
   SearchIcon,
@@ -20,7 +23,7 @@ import {
   FilesIcon,
   MailIcon,
   AlarmClockIcon,
-  ClockIcon,
+  Badge,
 } from "lucide-react";
 // import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -28,9 +31,19 @@ import { useEffect, useState } from "react";
 
 const nav = [
   {
+    label: "Today",
+    icon: CodeIcon,
+    href: "/",
+  },
+  {
+    label: "Workspace",
+    type: "section",
+    icon: "",
+  },
+  {
     label: "Notes",
     icon: SquareChartGanttIcon,
-    href: "/",
+    href: "/notes",
   },
   {
     label: "Projects",
@@ -38,73 +51,125 @@ const nav = [
     href: "/projects",
   },
   {
+    label: "Activity",
+    type: "section",
+  },
+  {
+    label: "Music",
+    icon: Headphones,
+    href: "/music",
+  },
+  {
+    label: "Watch",
+    icon: TvMinimalPlayIcon,
+    href: "/watch",
+  },
+  {
+    label: "Read later",
+    icon: BookOpenIcon,
+    href: "/read",
+  },
+  {
+    label: "Views",
+    type: "section",
+  },
+  {
     label: "Clocks",
     icon: Clock10Icon,
     href: "/clocks",
   },
   {
-    label: "Apps",
-    icon: GroupIcon,
-    type: "section",
-    children: [
-      {
-        label: "Mail",
-        icon: MailIcon,
-        href: "/apps/mail",
-      },
-      {
-        label: "Reminders",
-        icon: AlarmClockIcon,
-        href: "/apps/reminders",
-      },
-      {
-        label: "Files",
-        icon: FilesIcon,
-        href: "/apps/files",
-      },
-      {
-        label: "Photos",
-        icon: AlbumIcon,
-        href: "/apps/photos",
-      },
-      {
-        label: "Contacts",
-        icon: GroupIcon,
-        href: "/contacts",
-      },
-      {
-        label: "Music",
-        icon: Headphones,
-        href: "/music",
-      },
-      {
-        label: "Watch",
-        icon: TvMinimalPlayIcon,
-        href: "/watch",
-      },
-      {
-        label: "Read later",
-        icon: BookOpenIcon,
-        href: "/read",
-      },
-      {
-        label: "Github",
-        icon: GithubIcon,
-        href: "/apps/github",
-      },
-    ],
+    label: "Mail",
+    icon: MailIcon,
+    href: "/apps/mail",
   },
+  {
+    label: "Reminders",
+    icon: AlarmClockIcon,
+    href: "/apps/reminders",
+  },
+  {
+    label: "Files",
+    icon: FilesIcon,
+    href: "/apps/files",
+  },
+  {
+    label: "Photos",
+    icon: AlbumIcon,
+    href: "/apps/photos",
+  },
+  {
+    label: "Contacts",
+    icon: GroupIcon,
+    href: "/contacts",
+  },
+
+  {
+    label: "Github",
+    icon: GithubIcon,
+    href: "/apps/github",
+  },
+  // {
+  //   label: "Apps",
+  //   icon: GroupIcon,
+  //   type: "section",
+  //   children: [
+  //     {
+  //       label: "Mail",
+  //       icon: MailIcon,
+  //       href: "/apps/mail",
+  //     },
+  //     {
+  //       label: "Reminders",
+  //       icon: AlarmClockIcon,
+  //       href: "/apps/reminders",
+  //     },
+  //     {
+  //       label: "Files",
+  //       icon: FilesIcon,
+  //       href: "/apps/files",
+  //     },
+  //     {
+  //       label: "Photos",
+  //       icon: AlbumIcon,
+  //       href: "/apps/photos",
+  //     },
+  //     {
+  //       label: "Contacts",
+  //       icon: GroupIcon,
+  //       href: "/contacts",
+  //     },
+  //     {
+  //       label: "Music",
+  //       icon: Headphones,
+  //       href: "/music",
+  //     },
+  //     {
+  //       label: "Watch",
+  //       icon: TvMinimalPlayIcon,
+  //       href: "/watch",
+  //     },
+  //     {
+  //       label: "Read later",
+  //       icon: BookOpenIcon,
+  //       href: "/read",
+  //     },
+  //     {
+  //       label: "Github",
+  //       icon: GithubIcon,
+  //       href: "/apps/github",
+  //     },
+  //   ],
+  // },
   {
     label: "Explore",
     icon: TagsIcon,
     type: "section",
-    children: [
-      {
-        label: "Tags",
-        icon: TagsIcon,
-        href: "/tags",
-      },
-    ],
+  },
+  {
+    label: "Tags",
+    icon: TagsIcon,
+    href: "/tags",
   },
 ];
 
@@ -125,7 +190,7 @@ export default function Sidebar() {
   const pathname = usePathname();
   const { isSidebarOpen } = usePrefStore();
   const [time, setTime] = useState(formatTime(new Date(), "12h", "local"));
-  const [online, setOnline] = useState(navigator.onLine);
+  const { isLoading, isOnline } = useAppStore();
 
   useEffect(() => {
     const timeUpdater = setInterval(() => {
@@ -137,28 +202,71 @@ export default function Sidebar() {
     };
   }, []);
 
-  useEffect(() => {
-    setOnline(navigator.onLine);
-  }, [navigator.onLine]);
-
   return (
     <aside
       className={`${isSidebarOpen ? "block" : "hidden"} min-w-[22ch] h-screen`}
     >
-      <section className="flex items-center pl-4 pt-4">
+      <Flex pt="4" gap="2" className="items-center pl-4">
         <Link href="/" className="bg-black text-white p-1 rounded text-xs">
           <Text>dftr</Text>
         </Link>
-        {online === false && (
-          <div className="bg-gray-200 text-xs rounded-xl px-2 py-1 mx-auto max-w-20 items-center inline-flex gap-2">
+        {isLoading === true && (
+          <Badge>
+            <Flex gap="2" className="items-center text-xs">
+              <Spinner />
+              <Text>Syncing</Text>
+            </Flex>
+          </Badge>
+          // <Box className="bg-emerald-50 px-2">
+          //   <Flex gap="2" className="items-center text-xs">
+          //     <Spinner />
+          //     <Text>Syncing</Text>
+          //   </Flex>
+          // </Box>
+        )}
+        {isOnline === false && (
+          <Badge
+            color="gray"
+            className="rounded-xl px-2 py-1 mx-auto max-w-20 items-center inline-flex gap-2"
+          >
             <WifiOffIcon size={12} />
             Offline
-          </div>
+          </Badge>
         )}
         <span className="flex-1" />
         <SearchIcon size={16} className="text-gray-500" />
-      </section>
-      <nav className="flex flex-col h-full pl-2 mt-3 gap-0.5">
+      </Flex>
+      <NavigationMenu.Root className="px-4 mt-4">
+        <NavigationMenu.List className="list-none">
+          {nav.map((item, index) => (
+            <NavigationMenu.Item key={index}>
+              {item.type === "section" ? (
+                <Text size="1" className="uppercase text-gray-9 mt-6 block mb-1" key={index}>
+                  {item.label}
+                </Text>
+              ) : (
+                <NavigationMenu.Link
+                  className=""
+                  active={pathname === item.href}
+                  asChild
+                >
+                  <Link href={item.href} className="text-gray-11 hover:bg-gray-4 hover:no-underline data-[active]:bg-red-4">
+                    <Flex gap="2" className="items-center">
+                      <item.icon size={16} />
+                      {item.label}
+                    </Flex>
+                  </Link>
+                </NavigationMenu.Link>
+              )}
+            </NavigationMenu.Item>
+          ))}
+        </NavigationMenu.List>
+
+        <div className="ViewportPosition">
+          <NavigationMenu.Viewport className="NavigationMenuViewport" />
+        </div>
+      </NavigationMenu.Root>
+      {/* <nav className="flex flex-col h-full pl-2 mt-3 gap-0.5">
         {nav.map((item, index) => {
           if (item.type === "section") {
             return (
@@ -179,7 +287,7 @@ export default function Sidebar() {
                       href={subitem.href}
                     >
                       <subitem.icon size={16} />
-                      <span className="">{subitem.label}</span>
+                      {subitem.label}
                     </Link>
                   ))}
                 </div>
@@ -192,23 +300,20 @@ export default function Sidebar() {
               key={index}
               underline="none"
               className={`flex items-center gap-2 py-1 px-2 rounded  ${
-                pathname === item.href ? "bg-gray-200" : "hover:bg-gray-200"
+                pathname === item.href ? "" : ""
               }`}
               href={item.href ?? ""}
+              color="gray"
             >
               <item.icon size={16} />
-              <span className="">{item.label}</span>
+              {item.label}
             </Link>
           );
         })}
-        
-        {/* <span className="flex-1" /> */}
 
-        <Text className="text-gray-600 flex items-center gap-3 px-2 mt-72">
-          <ClockIcon size={16} className="" />
-          {time}
-        </Text>
-        <Separator my="2" size="4" />
+        <span className="flex-1" />
+
+      
 
         {bottomNav.map((item, index) => (
           <Link
@@ -223,7 +328,7 @@ export default function Sidebar() {
             <span className="">{item.label}</span>
           </Link>
         ))}
-      </nav>
+      </nav> */}
     </aside>
   );
 }

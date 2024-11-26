@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import { radixThemePreset } from 'radix-themes-tw';
+
 
 const config: Config = {
   content: [
@@ -7,11 +9,10 @@ const config: Config = {
     "./app/**/*.{js,ts,jsx,tsx,mdx}",
     "./ui/**/*.{js,ts,jsx,tsx,mdx}",
   ],
+  presets: [radixThemePreset],
   theme: {
     extend: {
       colors: {
-        background: "var(--background)",
-        foreground: "var(--foreground)",
       },
     },
   },

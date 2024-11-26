@@ -13,12 +13,46 @@ export const create = async (note: Note | string): Promise<Note | null> => {
         type: "note",
         tags: []
     }
+
     if (typeof note === 'string') {
         payload = await processNote(note)
-    } else {
+    } else if (note.type === "url" && note.url) {
+        try {
+            const url = new URL(note.url)
+            // check the media type
+            const { meta } = await fetch(`http://localhost:3000/api/metadata?url=${encodeURIComponent(url.toString())}`).then(r => r.json())
+            payload.url = note.url
+            payload.title = meta.title
+            payload.description = meta.description
+            payload.hostname = url.hostname
+            payload.image = meta.image ? meta.image : ''
+
+            console.log({contentType: meta.contentType})
+
+            if (isYoutubeVideo(url)) {
+                payload.type = "media+video"
+                payload.platform = "youtube"
+            } else if (meta.contentType.startsWith('image')) {
+                payload.type = "media+image"
+            } else if (note.url.startsWith('https://maps.app.goo.gl') || note.url.startsWith('https://www.google.com/maps') || note.url.startsWith('https://maps.google.com')) {
+                payload.type = 'location'
+            } else {
+                payload.type = "url"
+            }
+        } catch (e) {
+            console.error(e)
+            // if we fail to fetch the url, we just save it as a text
+            payload.title = note.url
+            payload.description = 'failed to fetch information ...'
+            payload.type = 'url'
+            payload.url = note.url
+        }
+    }  
+    else {
         payload = note
     }
     payload.createdAt = new Date().getTime()
+    payload.updatedAt = new Date().getTime()
 
     const { insertedId } = await client.db("rateeb").collection<Note>("notes").insertOne(payload);
     const newNote = await client.db("rateeb").collection<Note>("notes").findOne({ _id: insertedId });
