@@ -1,33 +1,26 @@
 "use client";
-import { formatTime } from "@/services/date.service";
-import useAppStore from "@/store/loadingIndicator.store";
-import usePrefStore from "@/store/pref.store";
 import * as NavigationMenu from "@radix-ui/react-navigation-menu";
-import { Text, Link, Flex, Spinner } from "@radix-ui/themes";
-import { CodeIcon } from "@radix-ui/react-icons";
+import { Text, Link, Flex, Spinner, Box } from "@radix-ui/themes";
 import {
-  TagsIcon,
-  SearchIcon,
-  SettingsIcon,
-  SquareChartGanttIcon,
-  GroupIcon,
-  Clock10Icon,
-  TrashIcon,
-  TvMinimalPlayIcon,
-  Headphones,
-  BookOpenIcon,
-  WorkflowIcon,
-  WifiOffIcon,
-  GithubIcon,
-  AlbumIcon,
-  FilesIcon,
-  MailIcon,
-  AlarmClockIcon,
-  Badge,
-} from "lucide-react";
+  CodeIcon,
+  LayersIcon,
+  MagnifyingGlassIcon,
+  ReaderIcon,
+  PersonIcon,
+  VideoIcon,
+  CalendarIcon,
+  PlayIcon,
+  ClockIcon,
+  EnvelopeOpenIcon,
+  BellIcon,
+  FileIcon,
+  ImageIcon,
+  IdCardIcon,
+} from "@radix-ui/react-icons";
+import { WifiOffIcon, GithubIcon, Badge } from "lucide-react";
 // import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import useAppStore from "@/store/app.store";
 
 const nav = [
   {
@@ -41,14 +34,14 @@ const nav = [
     icon: "",
   },
   {
-    label: "Notes",
-    icon: SquareChartGanttIcon,
-    href: "/notes",
+    label: "Feed",
+    icon: ReaderIcon,
+    href: "/feed",
   },
   {
-    label: "Projects",
-    icon: WorkflowIcon,
-    href: "/projects",
+    label: "Views",
+    icon: LayersIcon,
+    href: "/views",
   },
   {
     label: "Activity",
@@ -56,51 +49,56 @@ const nav = [
   },
   {
     label: "Music",
-    icon: Headphones,
+    icon: PlayIcon,
     href: "/music",
   },
   {
     label: "Watch",
-    icon: TvMinimalPlayIcon,
+    icon: VideoIcon,
     href: "/watch",
   },
   {
     label: "Read later",
-    icon: BookOpenIcon,
+    icon: ReaderIcon,
     href: "/read",
   },
   {
-    label: "Views",
+    label: "Apps",
     type: "section",
   },
   {
     label: "Clocks",
-    icon: Clock10Icon,
+    icon: ClockIcon,
     href: "/clocks",
   },
   {
+    label: "Calendar",
+    icon: CalendarIcon,
+    href: "/apps/calendar",
+  },
+  {
     label: "Mail",
-    icon: MailIcon,
+    icon: EnvelopeOpenIcon,
     href: "/apps/mail",
   },
   {
     label: "Reminders",
-    icon: AlarmClockIcon,
+    icon: BellIcon,
     href: "/apps/reminders",
   },
   {
     label: "Files",
-    icon: FilesIcon,
+    icon: FileIcon,
     href: "/apps/files",
   },
   {
     label: "Photos",
-    icon: AlbumIcon,
+    icon: ImageIcon,
     href: "/apps/photos",
   },
   {
     label: "Contacts",
-    icon: GroupIcon,
+    icon: PersonIcon,
     href: "/contacts",
   },
 
@@ -109,148 +107,89 @@ const nav = [
     icon: GithubIcon,
     href: "/apps/github",
   },
-  // {
-  //   label: "Apps",
-  //   icon: GroupIcon,
-  //   type: "section",
-  //   children: [
-  //     {
-  //       label: "Mail",
-  //       icon: MailIcon,
-  //       href: "/apps/mail",
-  //     },
-  //     {
-  //       label: "Reminders",
-  //       icon: AlarmClockIcon,
-  //       href: "/apps/reminders",
-  //     },
-  //     {
-  //       label: "Files",
-  //       icon: FilesIcon,
-  //       href: "/apps/files",
-  //     },
-  //     {
-  //       label: "Photos",
-  //       icon: AlbumIcon,
-  //       href: "/apps/photos",
-  //     },
-  //     {
-  //       label: "Contacts",
-  //       icon: GroupIcon,
-  //       href: "/contacts",
-  //     },
-  //     {
-  //       label: "Music",
-  //       icon: Headphones,
-  //       href: "/music",
-  //     },
-  //     {
-  //       label: "Watch",
-  //       icon: TvMinimalPlayIcon,
-  //       href: "/watch",
-  //     },
-  //     {
-  //       label: "Read later",
-  //       icon: BookOpenIcon,
-  //       href: "/read",
-  //     },
-  //     {
-  //       label: "Github",
-  //       icon: GithubIcon,
-  //       href: "/apps/github",
-  //     },
-  //   ],
-  // },
   {
     label: "Explore",
-    icon: TagsIcon,
+    icon: IdCardIcon,
     type: "section",
   },
   {
     label: "Tags",
-    icon: TagsIcon,
+    icon: IdCardIcon,
     href: "/tags",
   },
 ];
 
-const bottomNav = [
-  {
-    label: "Trash",
-    icon: TrashIcon,
-    href: "/trash",
-  },
-  {
-    label: "Settings",
-    icon: SettingsIcon,
-    href: "/settings",
-  },
-];
+// const bottomNav = [
+//   {
+//     label: "Trash",
+//     icon: TrashIcon,
+//     href: "/trash",
+//   },
+//   {
+//     label: "Settings",
+//     icon: SettingsIcon,
+//     href: "/settings",
+//   },
+// ];
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { isSidebarOpen } = usePrefStore();
-  const [time, setTime] = useState(formatTime(new Date(), "12h", "local"));
-  const { isLoading, isOnline } = useAppStore();
+  const { isSidebarOpen, isLoading, isOnline } = useAppStore();
+  // const [time, setTime] = useState(formatTime(new Date(), "12h", "local"));
 
-  useEffect(() => {
-    const timeUpdater = setInterval(() => {
-      setTime(formatTime(new Date(), "12h", "local"));
-    }, 5000);
+  // useEffect(() => {
+  //   const timeUpdater = setInterval(() => {
+  //     setTime(formatTime(new Date(), "12h", "local"));
+  //   }, 5000);
 
-    return () => {
-      clearInterval(timeUpdater);
-    };
-  }, []);
+  //   return () => {
+  //     clearInterval(timeUpdater);
+  //   };
+  // }, []);
 
   return (
     <aside
-      className={`${isSidebarOpen ? "block" : "hidden"} min-w-[22ch] h-screen`}
+      className={`${isSidebarOpen ? "block" : "hidden"} min-w-[22ch] w-auto h-screen`}
     >
-      <Flex pt="4" gap="2" className="items-center pl-4">
+      <Flex gap="2" className="items-center" p="4">
         <Link href="/" className="bg-black text-white p-1 rounded text-xs">
           <Text>dftr</Text>
         </Link>
         {isLoading === true && (
-          <Badge>
+          <Badge color="gray">
             <Flex gap="2" className="items-center text-xs">
               <Spinner />
               <Text>Syncing</Text>
             </Flex>
           </Badge>
-          // <Box className="bg-emerald-50 px-2">
-          //   <Flex gap="2" className="items-center text-xs">
-          //     <Spinner />
-          //     <Text>Syncing</Text>
-          //   </Flex>
-          // </Box>
         )}
         {isOnline === false && (
-          <Badge
-            color="gray"
-            className="rounded-xl px-2 py-1 mx-auto max-w-20 items-center inline-flex gap-2"
-          >
-            <WifiOffIcon size={12} />
-            Offline
+          <Badge color="gray" className="rounded-xl mx-auto max-w-20">
+            <Flex px="2" py="1" justify={"center"} gap="2">
+              <WifiOffIcon size={12} />
+              Offline
+            </Flex>
           </Badge>
         )}
         <span className="flex-1" />
-        <SearchIcon size={16} className="text-gray-500" />
+        <MagnifyingGlassIcon className="text-gray-10" />
       </Flex>
-      <NavigationMenu.Root className="px-4 mt-4">
+      <NavigationMenu.Root className="px-3">
         <NavigationMenu.List className="list-none">
           {nav.map((item, index) => (
             <NavigationMenu.Item key={index}>
               {item.type === "section" ? (
-                <Text size="1" className="uppercase text-gray-9 mt-6 block mb-1" key={index}>
+                <Box mt="4" mb="1"><Text size="1" className="uppercase text-gray-10 block mb-1">
                   {item.label}
-                </Text>
+                </Text></Box>
               ) : (
-                <NavigationMenu.Link
-                  className=""
-                  active={pathname === item.href}
-                  asChild
-                >
-                  <Link href={item.href} className="text-gray-11 hover:bg-gray-4 hover:no-underline data-[active]:bg-red-4">
+                <NavigationMenu.Link active={pathname === item.href} asChild>
+                  <Link
+                    href={item.href}
+                    color="gray"
+                    className="flex data-[active]:bg-gray-5 hover:bg-gray-4 cursor-pointer px-1.5 py-0.5 w-full"
+                    underline="none"
+                  >
                     <Flex gap="2" className="items-center">
                       <item.icon size={16} />
                       {item.label}
@@ -260,6 +199,7 @@ export default function Sidebar() {
               )}
             </NavigationMenu.Item>
           ))}
+          <NavigationMenu.Indicator className="bg-gray-12" />
         </NavigationMenu.List>
 
         <div className="ViewportPosition">

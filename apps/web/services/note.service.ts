@@ -1,61 +1,78 @@
 import { client } from "@/db";
-import { Note } from "@/entity";
+import { Block, BookmarkProperties } from "@/entity";
 import { ObjectId } from "mongodb";
 
-export const list = async (): Promise<Note[]> => {
-    const notes = await client.db("rateeb").collection<Note>("notes").find({ isDeleted: { $exists: false, $ne: true } }).toArray();
-    return notes
-}
+// export const list = async (): Promise<Block[]> => {
+//     const notes = await client.db("rateeb").collection<Block>("notes").find({ isDeleted: { $exists: false, $ne: true } }).toArray();
+//     return notes
+// }
 
-export const create = async (note: Note | string): Promise<Note | null> => {
-    let payload: Note = {
+export const create = async (req: Block): Promise<Block | null> => {
+    console.debug('received request', req)
+
+    let payload: Block = {
         title: "",
-        type: "note",
-        tags: []
+        type: "url",
+        tags: [],
+        // @ts-expect-error implement types for properties
+        properties: {}
+    }
+    if (req.type === "url") {
+        const props = req.properties as BookmarkProperties
+        payload = await processNote(props.url)
+    } else {
+        payload = req
     }
 
-    if (typeof note === 'string') {
-        payload = await processNote(note)
-    } else if (note.type === "url" && note.url) {
-        try {
-            const url = new URL(note.url)
-            // check the media type
-            const { meta } = await fetch(`http://localhost:3000/api/metadata?url=${encodeURIComponent(url.toString())}`).then(r => r.json())
-            payload.url = note.url
-            payload.title = meta.title
-            payload.description = meta.description
-            payload.hostname = url.hostname
-            payload.image = meta.image ? meta.image : ''
+    // if (typeof req.value === 'string') {
+    //     payload = await processNote(note)
+    // } else if (.type === "url" && note.properties.url) {
+    //     try {
+    //         const url = new URL(note.properties.url)
+    //         // check the media type
+    //         const { meta } = await fetch(`http://localhost:3000/api/metadata?url=${encodeURIComponent(url.toString())}`).then(r => r.json())
+    //         payload.properties.url = note.url
+    //         payload.title = meta.title
+    //         payload.description = meta.description
+    //         payload.properties.hostname = url.hostname
+    //         payload.properties.image = meta.image ? meta.image : ''
 
-            console.log({contentType: meta.contentType})
+    //         console.log({contentType: meta.contentType})
 
-            if (isYoutubeVideo(url)) {
-                payload.type = "media+video"
-                payload.platform = "youtube"
-            } else if (meta.contentType.startsWith('image')) {
-                payload.type = "media+image"
-            } else if (note.url.startsWith('https://maps.app.goo.gl') || note.url.startsWith('https://www.google.com/maps') || note.url.startsWith('https://maps.google.com')) {
-                payload.type = 'location'
-            } else {
-                payload.type = "url"
-            }
-        } catch (e) {
-            console.error(e)
-            // if we fail to fetch the url, we just save it as a text
-            payload.title = note.url
-            payload.description = 'failed to fetch information ...'
-            payload.type = 'url'
-            payload.url = note.url
-        }
-    }  
-    else {
-        payload = note
-    }
+    //         if (isYoutubeVideo(url)) {
+    //             payload.type = "media+video"
+    //             payload.platform = "youtube"
+    //         } else if (meta.contentType.startsWith('image')) {
+    //             payload.type = "media+image"
+    //         } else if (note.properties.url.startsWith('https://maps.app.goo.gl') || note.url.startsWith('https://www.google.com/maps') || note.url.startsWith('https://maps.google.com')) {
+    //             payload.type = 'location'
+    //         } else {
+    //             payload.type = "url"
+    //         }
+    //     } catch (e) {
+    //         console.error(e)
+    //         // if we fail to fetch the url, we just save it as a text
+    //         payload.title = note.properties.url
+    //         payload.description = 'failed to fetch information ...'
+    //         payload.type = 'url'
+    //         payload.properties.url = note.properties.url
+    //     }
+    // }  
+    // else {
+    //     payload = note
+    // }
     payload.createdAt = new Date().getTime()
     payload.updatedAt = new Date().getTime()
 
-    const { insertedId } = await client.db("rateeb").collection<Note>("notes").insertOne(payload);
-    const newNote = await client.db("rateeb").collection<Note>("notes").findOne({ _id: insertedId });
+    console.log({ newBlockPayload: payload })
+
+    const newNote = await fetch('http://localhost:4000/api/blocks', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
+    }).then((resp) => resp.json())
 
     return newNote
 }
@@ -66,7 +83,7 @@ export const pinNote = async (id: string): Promise<any> => {
 }
 
 export const addTag = async (id: string, tag: string): Promise<any> => {
-    return await client.db("rateeb").collection<Note[]>("notes").updateOne({ _id: new ObjectId(id) }, { $push: { tags: tag } })
+    return await client.db("rateeb").collection<Block[]>("notes").updateOne({ _id: new ObjectId(id) }, { $push: { tags: tag } })
 }
 
 export const deleteNote = async (id: string): Promise<any> => {
@@ -74,9 +91,12 @@ export const deleteNote = async (id: string): Promise<any> => {
 }
 
 export const processNote = async (text: string): Promise<any> => {
-    const note: Note = {
+    const block: Block = {
         title: '',
-        type: "note",
+        type: "url",
+        properties: {
+            url: ""
+        },
         tags: []
     }
 
@@ -86,43 +106,42 @@ export const processNote = async (text: string): Promise<any> => {
             const url = new URL(text)
             // check the media type
             const { meta } = await fetch(`http://localhost:3000/api/metadata?url=${encodeURIComponent(url.toString())}`).then(r => r.json())
-            note.url = text
-            note.title = meta.title
-            note.description = meta.description
-            note.hostname = url.hostname
-            note.image = meta.image ? meta.image : ''
-
-            console.log({contentType: meta.contentType})
+            block.properties.url = text
+            block.title = meta.title
+            block.description = meta.description
+            block.properties.hostname = url.hostname
+            block.properties.thumbnail = meta.image ? meta.image : ''
 
             if (isYoutubeVideo(url)) {
-                note.type = "media+video"
-                note.platform = "youtube"
+                block.properties.contentType = "media+video"
+                block.properties.platform = "youtube"
             } else if (meta.contentType.startsWith('image')) {
-                note.type = "media+image"
+                block.properties.contentType = "media+image"
             } else if (text.startsWith('https://maps.app.goo.gl') || text.startsWith('https://www.google.com/maps') || text.startsWith('https://maps.google.com')) {
-                note.type = 'location'
+                block.properties.contentType = 'location'
+                block.properties.platform = "googlemaps"
             } else {
-                note.type = "url"
+                block.type = "url"
             }
         } catch (e) {
             console.error(e)
             // if we fail to fetch the url, we just save it as a text
-            note.title = text
-            note.description = 'failed to fetch information ...'
-            note.type = 'url'
-            note.url = text
+            block.title = text
+            block.description = 'failed to fetch information ...'
+            block.type = 'url'
+            block.properties.url = text
         }
     } else {
-        note.title = text
-        note.description = text ?? ''
+        block.title = text
+        block.description = text ?? ''
     }
 
-    note.createdAt = new Date().getTime()
-    return note
+    block.createdAt = new Date().getTime()
+    return block
 }
 
 const isYoutubeVideo = (url: URL): boolean => {
-    console.log({pathname: url.pathname})
+    console.log({ pathname: url.pathname })
     if (url.pathname === "/") {
         // we don't want to treat youtube homepage as video
         console.log('youtube homepage')

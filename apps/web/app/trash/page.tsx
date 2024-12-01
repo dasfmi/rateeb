@@ -1,12 +1,12 @@
 "use client";
-import { Note } from "@/entity";
-import NoteCard from "@/ui/NoteCard";
+import { Block } from "@/entity";
+import BlockCard from "@/components/blocks/BlockCard";
 import Spinner from "@/ui/Spinner";
 import { useEffect, useState } from "react";
 
 export default function TrashPage() {
   const [isLoading, setIsLoading] = useState(true);
-  const [notes, setNotes] = useState<Note[]>([]);
+  const [notes, setNotes] = useState<Block[]>([]);
 
   useEffect(() => {
     setIsLoading(true);
@@ -36,10 +36,10 @@ export default function TrashPage() {
 
       <section className="overflow-y-auto max-w-full p-4 pt-24">
         <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-5 gap-4 space-y-4">
-          {notes.map((n: Note) => (
-            <NoteCard
+          {notes.map((n: Block) => (
+            <BlockCard
               key={n._id}
-              note={n}
+              block={n}
               onAction={() => {}}
             />
           ))}

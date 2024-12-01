@@ -1,12 +1,11 @@
 "use client";
 
-import { Note } from "@/entity";
+import { Block } from "@/entity";
 
 // loadNotes: tries to load notes from cache, if not found, fetch from the server
 export const loadNotes = async ({
   query,
   type,
-  noCache,
   tags,
 }: {
   query?: string;
@@ -16,42 +15,24 @@ export const loadNotes = async ({
 }) => {
   const searchParams = new URLSearchParams();
   if (query) {
-    searchParams.set("title", query);
+    searchParams.set("title", `contains:${query}`);
   }
   if (type) {
-    searchParams.set("type", type);
+    searchParams.set("type", `eq:${type}`);
   }
   if (tags) {
-    searchParams.set("tags", tags);
+    searchParams.set("tags", `in:${tags}`);
   }
 
-  // try load to load notes from localStorage, if not found, fetch from the server
-  if (searchParams.size === 0 && !noCache) {
-    const notes = localStorage.getItem("notes");
-    if (notes) {
-      const payload = JSON.parse(notes);
-      // if payload is saved for more than 60 minutes, then fetch from the server
-      if (payload.createdAt + 60 * 60 * 1000 > new Date().getTime()) {
-        return payload.data;
-      }
-    }
-  }
 
-  const { data } = await fetch("/api/notes?" + searchParams.toString()).then(
+  const { data } = await fetch("http://localhost:4000/api/blocks?" + searchParams.toString()).then(
     (resp) => resp.json(),
   );
-  // const { data } = await resp.json();
-  // save the notes to localStorage
-  if (searchParams.size === 0 && data.length > 0) {
-    localStorage.setItem(
-      "notes",
-      JSON.stringify({ createdAt: new Date().getTime(), data }),
-    );
-  }
+  
   return data;
 };
 
-export const createNote = async (note: Note) => {
+export const createNote = async (note: Block) => {
   const resp = await fetch("/api/notes", {
     method: "POST",
     body: JSON.stringify(note),

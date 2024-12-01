@@ -1,0 +1,11 @@
+{
+    "title": "Migration",
+    "description": "Research which country to move to?",
+    "target": {
+        "tags": [
+            "migration"
+        ]
+    },
+    "type": "list",
+    "createdAt": 1732666794524
+}

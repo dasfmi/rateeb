@@ -1,0 +1,1 @@
+{"id":"9ec1f332-683e-4ccc-a0d4-9d37af3a70fb","type":"chart","title":"Net Worth","description":"Balances for each account","properties":{"chartType":"doughnut","databaseId":"sheet","query":{"key":"Account","value":"Balance"}},"tags":["finance"],"createdAt":1732897788627,"updatedAt":1732897788627}

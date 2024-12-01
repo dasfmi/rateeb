@@ -1,5 +1,5 @@
 import { OutputBlockData } from "@editorjs/editorjs";
-import NoteCard from "../NoteCard";
+import BlockCard from "../../components/blocks/BlockCard";
 import icon from "./icon.svg";
 
 export class NotePreview {
@@ -7,7 +7,7 @@ export class NotePreview {
     return {
       title: "Note Preview",
       icon: icon,
-      component: NoteCard,
+      component: BlockCard,
     };
   }
   private data: OutputBlockData;
@@ -19,9 +19,9 @@ export class NotePreview {
   render() {
     console.log({data: this.data})
     return (
-      <NoteCard
-        note={{
-          _id: undefined,
+      <BlockCard
+        block={{
+          id: undefined,
           title: "",
           type: "note",
           tags: [],

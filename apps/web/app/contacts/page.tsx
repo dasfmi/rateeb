@@ -1,8 +1,8 @@
 "use client";
-import { Note } from "@/entity";
-import useNotesStore from "@/store/notes.store";
+import { Block } from "@/entity";
+import useAppStore from "@/store/app.store";
 import NewContactDialog from "@/ui/NewContactDialog";
-import NotesContainer from "@/ui/NotesColumns";
+import BlocksContainer from "@/components/blocks/BlocksContainer";
 import { Flex, IconButton, Separator } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 
@@ -13,15 +13,15 @@ import { useEffect, useState } from "react";
 // };
 
 export default function Today() {
-  const { notes } = useNotesStore();
+  const { blocks: notes } = useAppStore();
   // const { setIsLoading } = useLoadingIndicator();
-  const [contacts, setContacts] = useState<Note[]>(
-    notes.filter((note: Note) => note.type === "contact"),
+  const [contacts, setContacts] = useState<Block[]>(
+    notes.filter((note: Block) => note.type === "contact"),
   );
 
   useEffect(() => {
     console.log("notes changed", notes.length);
-    setContacts(notes.filter((note: Note) => note.type === "contact"));
+    setContacts(notes.filter((note: Block) => note.type === "contact"));
   }, [notes]);
 
   // useEffect(() => {
@@ -48,7 +48,7 @@ export default function Today() {
         </NewContactDialog>
       </Flex>
       <Separator size="4" my={"3"} />
-      <NotesContainer notes={contacts} onAction={() => {}} />
+      <BlocksContainer blocks={contacts} onAction={() => {}} />
       {/* <div className="flex w-full flex-1 h-full">
         <section className="w-full">
           {isLoading && (

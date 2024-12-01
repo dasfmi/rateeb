@@ -3,12 +3,15 @@ import "./globals.css";
 import { useEffect, useState } from "react";
 
 import Sidebar from "./Sidebar";
-import usePrefStore from "@/store/pref.store";
-import useNotificationsStore from "@/store/notifications.store";
-import { Button, Card, Flex, Heading, Theme } from "@radix-ui/themes";
-import useAppStore from "@/store/loadingIndicator.store";
-import { loadNotes } from "@/services/notes.client";
-import useNotesStore from "@/store/notes.store";
+import {
+  Button,
+  Card,
+  Container,
+  Flex,
+  Heading,
+  Theme,
+} from "@radix-ui/themes";
+import useAppStore from "@/store/app.store";
 
 export default function RootLayout({
   children,
@@ -16,41 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [, setIsMobile] = useState(false);
-  const { setIsSidebarOpen } = usePrefStore();
-  const { notifications, dismissNotification, queueNotification } =
-    useNotificationsStore();
-  const { setIsLoading, setIsOnline } = useAppStore();
-  const { setNotes } = useNotesStore();
-
-  useEffect(() => {
-    setIsOnline(navigator.onLine);
-    const dataLoader = setInterval(() => {
-      // set online status
-      console.log({ online: navigator.onLine });
-      setIsOnline(navigator.onLine);
-      // if no connection, abort
-      if (!navigator.onLine) {
-        return;
-      }
-      // TODO: if sync is in progress, do nothing
-      setIsLoading(true);
-      console.log("should sync");
-      loadNotes({})
-        .then((data) => setNotes(data))
-        .catch((err) => {
-          console.log("some error occured");
-          queueNotification({
-            color: "danger",
-            title: "Failed to load notes",
-            description: err.message ? err.message : err,
-          });
-        })
-        .finally(() => setIsLoading(false));
-    }, 10_000);
-    return () => {
-      clearInterval(dataLoader);
-    };
-  }, [queueNotification, setIsLoading, setIsOnline, setNotes]);
+  const { setIsSidebarOpen, notifications, dismissNotification } =
+    useAppStore();
 
   // create an event listener
   useEffect(() => {
@@ -70,24 +40,26 @@ export default function RootLayout({
 
   return (
     <html lang="en">
-      <body className="h-screen m-0 bg-[var(--gray-3)] overflow-y-hidden">
+      <body className="h-screen m-0 overflow-y-hidden">
         <Theme
           accentColor="brown"
           panelBackground="translucent"
           scaling="95%"
-          appearance="dark"
+          appearance="light"
+          radius="small"
         >
           <Flex
             direction="row"
-            className="antialiased h-screen overflow-y-hidden"
-            overflowY={"auto"}
-            height={"screen"}
+            className="antialiased h-screen overflow-y-hidden bg-gray-3"
+            overflowY={"hidden"}
+            height={"100vh"}
             width={"screen"}
             maxWidth={"screen"}
-            maxHeight={"screen"}
+            maxHeight={"100vh"}
+            gap="0"
           >
             <Sidebar />
-            <Card m="3" className="w-full overflow-y-auto">
+            <Card my="3" className="w-full bg-whiteA-12 overflow-hidden relative">
               {children}
             </Card>
             {notifications.length > 0 && (
@@ -99,9 +71,7 @@ export default function RootLayout({
                   >
                     <div className="flex items-center">
                       {/* <h4 className="text-sm text-red-700 font-bold leading-9"> */}
-                        <Heading size="3">
-                        {n.title}
-                        </Heading>
+                      <Heading size="3">{n.title}</Heading>
                       {/* </h4> */}
                       <span className="flex-1" />
                       <Button

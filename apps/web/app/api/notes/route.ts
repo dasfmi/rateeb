@@ -1,7 +1,6 @@
-import { client, withDB } from "@/db";
-import { Note } from "@/entity";
 import { create } from "@/services/note.service";
 import { Filter } from "mongodb";
+import { NextRequest } from "next/server";
 
 type NoteFilter = {
   type?: string;
@@ -12,8 +11,8 @@ type NoteFilter = {
 }
 
 export async function GET(req: Request) {
-  await client.connect();
-  await client.db("rateeb").command({ ping: 1 });
+  // await client.connect();
+  // await client.db("rateeb").command({ ping: 1 });
 
   // build filters
   const filters: Filter<NoteFilter> = {}
@@ -46,9 +45,8 @@ export async function GET(req: Request) {
   if (tags) {
     filters.tags = { $in: tags.split(',') }
   }
-  // @ts-expect-error not sure how to fix filters
-  const notes = await client.db("rateeb").collection<Note>("notes").find(filters).sort({ updatedAt: -1 }).toArray();
-
+  // const notes = await client.db("rateeb").collection<Note>("notes").find(filters).sort({ updatedAt: -1 }).toArray();
+  const blocks = await fetch('http://localhost:4000/api/blocks').then((resp) => resp.json())
   // const findRelated = url.searchParams.get('related')
   // let related: Note[] = []
   // if (findRelated) {
@@ -59,12 +57,13 @@ export async function GET(req: Request) {
   //   related = await client.db("rateeb").collection<Note>("notes").find(targetFilter).sort({target: -1, isPinned: -1, createdAt: -1}).toArray();
   // }
 
-  return Response.json({ data: notes });
+  return Response.json({ data: blocks });
 }
 
-export const POST = withDB(async (req) => {
+export const POST = async (req: NextRequest) => {
   const note = await req.json()
+  console.log({ note })
   const newNote = await create(note)
 
   return Response.json({ ok: true, data: newNote })
-})
+}

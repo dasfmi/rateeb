@@ -1,6 +1,6 @@
 "use client";
-import NotesManager from "@/components/NotesManager";
+import BlocksManager from "@/components/BlocksManager";
 
 export default function Music() {
-  return <NotesManager constraints={{ tags: "read-later" }} />;
+  return <BlocksManager constraints={{ tags: "read-later" }} />;
 }

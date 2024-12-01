@@ -61,7 +61,7 @@ export default function AttachToProjectDialog({
               <Select.Content>
                 {/* <Select.Item value="">Select a project</Select.Item> */}
                 {projects.map((proj) => (
-                  <Select.Item key={proj._id} value={proj._id!}>
+                  <Select.Item key={proj.id} value={proj.id!}>
                     {proj.title}
                   </Select.Item>
                 ))}

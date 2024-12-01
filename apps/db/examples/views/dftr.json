@@ -1,0 +1,34 @@
+{
+    "title": "dftr",
+    "description": "Development tracking for my second brain",
+    "type": "kanban",
+    "target": {
+        "tags": ["dftr"]
+    },
+    "properties": {
+        "columns": {
+            "backlog": {
+                "title": "Backlog",
+                "tag": "",
+                "color": "gray"
+            },
+            "todo": {
+                "title": "Todo",
+                "tag": "todo",
+                "color": "mauve"
+            },
+            "inProgress": {
+                "title": "In Progress",
+                "tag": "in-progress",
+                "color": "yellow"
+            },
+            "done": {
+                "title": "Done",
+                "tag": "done",
+                "color": "green"
+            }
+        }
+    },
+    "createdAt": 1732646459647,
+    "updatedAt": 1732646459647
+}

@@ -68,9 +68,7 @@ const NoteContainer = ({
           <Tag
             key={index}
             tag={tag}
-            onDelete={function (): void {
-              throw new Error("Function not implemented.");
-            }}
+            onDelete={() => {}}
           />
         ))}
         <form onSubmit={onSubmitNewTag} className="flex items-center gap-2">

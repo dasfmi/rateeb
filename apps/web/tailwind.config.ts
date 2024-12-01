@@ -10,12 +10,7 @@ const config: Config = {
     "./ui/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   presets: [radixThemePreset],
-  theme: {
-    extend: {
-      colors: {
-      },
-    },
-  },
+  theme: {},
   plugins: [],
 };
 export default config;

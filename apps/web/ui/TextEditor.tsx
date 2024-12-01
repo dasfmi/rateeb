@@ -96,7 +96,7 @@ export default function Editor({ data, onChange, holder }: Props) {
     <>
       <div
         id={holder}
-        className="w-full min-h-[500px] h-screen border shadow bg-white p-4 rounded-xl overflow-y-auto"
+        className="w-full min-h-[500px] h-screen bg-whiteA-12 overflow-y-auto"
       />
     </>
   );

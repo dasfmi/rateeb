@@ -1,4 +1,4 @@
-import { Note } from "@/entity";
+import { Block } from "@/entity";
 import { createNote } from "@/services/notes.client";
 import useNotificationsStore from "@/store/notifications.store";
 import { Button, Dialog, Flex, TextField, Text } from "@radix-ui/themes";
@@ -15,7 +15,7 @@ export default function NewContactDialog({ children }: Props) {
 
   const _onCreateNewContact = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const contact: Note = {
+    const contact: Block = {
       type: "contact",
       title: "",
       tags: [],

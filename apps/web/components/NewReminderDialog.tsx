@@ -1,4 +1,4 @@
-import { Note } from "@/entity";
+import { Block } from "@/entity";
 import { createNote } from "@/services/notes.client";
 import {
   Dialog,
@@ -15,7 +15,7 @@ export default function NewReminderDialog() {
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsLoading(true);
-    const note: Note = {
+    const note: Block = {
       type: "reminder",
       title: e.currentTarget.reminder.value,
       description: e.currentTarget.description.value,

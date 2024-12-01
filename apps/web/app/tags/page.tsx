@@ -1,15 +1,13 @@
 "use client";
 
+import useAppStore from "@/store/app.store";
 import { useEffect, useState } from "react";
-import useNotificationsStore from "@/store/notifications.store";
-import useTagsStore from "@/store/tags.store";
 
 export default function TagsIndex() {
-  const { tags, setTags } = useTagsStore();
-  const { queueNotification } = useNotificationsStore();
+  const { queueNotification, tags, setTags } = useAppStore();
 
   useEffect(() => {
-    fetch("/api/tags")
+    fetch("http://localhost:4000/api/tags")
       .then((res) => res.json())
       .then((data) => {
         console.log({ tags: data.data });
@@ -24,7 +22,7 @@ export default function TagsIndex() {
           });
         }
       });
-  }, []);
+  }, [queueNotification]);
   return (
     <div className="">
       <div className="flex items-center gap-3 border-b py-1.5 px-6">
